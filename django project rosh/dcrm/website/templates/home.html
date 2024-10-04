@@ -1,0 +1,157 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="col-md-6 offset-md-3">
+
+{% if user.is_authenticated %}
+
+<head></head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Data</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        table, th, td {
+            border: 1px solid #000;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Student Data</h1>
+
+<form id="studentForm">
+    <input type="hidden" id="index" value="">
+    <input type="text" id="name" placeholder="Name" required>
+    <input type="date" id="dob" required>
+    <input type="text" id="class" placeholder="Class" required>
+    <input type="text" id="grade" placeholder="Grade" required>
+    <button type="submit">Add/Update Student</button>
+</form>
+
+<table id="studentTable">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Date of Birth</th>
+            <th>Class</th>
+            <th>Grade</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        <!-- Student data will be appended here -->
+    </tbody>
+</table>
+
+<script>
+    const studentTableBody = document.getElementById("studentTable").getElementsByTagName("tbody")[0];
+
+    // Load students from Local Storage
+    let students = JSON.parse(localStorage.getItem('students')) || [];
+
+    function displayStudents() {
+        studentTableBody.innerHTML = "";
+        students.forEach((student, index) => {
+            const row = studentTableBody.insertRow();
+            row.insertCell(0).textContent = student.name;
+            row.insertCell(1).textContent = student.dob;
+            row.insertCell(2).textContent = student.class;
+            row.insertCell(3).textContent = student.grade;
+
+            const actionsCell = row.insertCell(4);
+            const editButton = document.createElement("button");
+            editButton.textContent = "Edit";
+            editButton.onclick = () => editStudent(index);
+            actionsCell.appendChild(editButton);
+
+            const deleteButton = document.createElement("button");
+            deleteButton.textContent = "Delete";
+            deleteButton.onclick = () => deleteStudent(index);
+            actionsCell.appendChild(deleteButton);
+        });
+    }
+
+    function addOrUpdateStudent(event) {
+        event.preventDefault();
+        const index = document.getElementById("index").value;
+        const student = {
+            name: document.getElementById("name").value,
+            dob: document.getElementById("dob").value,
+            class: document.getElementById("class").value,
+            grade: document.getElementById("grade").value
+        };
+
+        if (index) {
+            students[index] = student;
+        } else {
+            students.push(student);
+        }
+        localStorage.setItem('students', JSON.stringify(students));
+        document.getElementById("studentForm").reset();
+        document.getElementById("index").value = "";
+        displayStudents();
+    }
+
+    function editStudent(index) {
+        const student = students[index];
+        document.getElementById("name").value = student.name;
+        document.getElementById("dob").value = student.dob;
+        document.getElementById("class").value = student.class;
+        document.getElementById("grade").value = student.grade;
+        document.getElementById("index").value = index;
+    }
+
+    function deleteStudent(index) {
+        students.splice(index, 1);
+        localStorage.setItem('students', JSON.stringify(students));
+        displayStudents();
+    }
+
+    document.getElementById("studentForm").addEventListener("submit", addOrUpdateStudent);
+
+    displayStudents();
+</script>
+
+</body>
+
+{% else %}
+
+<h1>Login</h1>
+<br/>
+
+<form method="POST" action="{% url 'home' %}">
+	{% csrf_token %}
+	<form>
+  <div class="mb-3">
+    <input type="text" class="form-control" name="username", placeholder="Username" required>
+
+  </div><br/>
+  <div class="mb-3">
+    <input type="password" class="form-control" name="password", placeholder="Password" required>
+  </div>
+  <br/>
+  <button type="submit" class="btn btn-secondary">Login</button>
+</form>
+
+</form>
+
+
+</div>
+
+{% endif %}
+
+{% endblock %}
